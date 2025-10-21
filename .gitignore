@@ -1,0 +1,47 @@
+# Archivo para ignorar en Git
+
+# Node modules (si se añaden dependencias en el futuro)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Archivos de build
+dist/
+build/
+*.crx
+*.pem
+*.zip
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos del editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+.classpath
+
+# Archivos temporales
+*.tmp
+*.temp
+.cache/
+*.log
+
+# Archivos de prueba
+test-results/
+coverage/
+
+# Archivos personales
+notes.md
+TODO.txt
+.env
+.env.local

@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "BibTeX to Specify 7",
+  "version": "1.0.0",
+  "description": "Extensión para importar bibliografía BibTeX en formularios de Specify 7",
+  "permissions": [
+    "activeTab",
+    "clipboardRead"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["bibtex-parser.js", "content-script.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

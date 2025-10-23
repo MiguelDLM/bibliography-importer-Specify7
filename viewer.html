@@ -26,6 +26,66 @@
                 </svg>
                 Wireframe
             </button>
+            <button id="fitview-btn" title="Fit view to model">
+                Fit view
+            </button>
+    </div>
+
+    <!-- Settings panel for lighting & material -->
+    <div id="settings-panel" aria-hidden="true">
+        <h3>Appearance</h3>
+        <label>
+            Preset
+            <select id="preset-select">
+                <option value="fossil">Fossil (matte bone)</option>
+                <option value="polished">Polished (gloss)</option>
+                <option value="metallic">Metallic</option>
+                <option value="default">Default</option>
+            </select>
+        </label>
+
+        <label>
+            Color
+            <input type="color" id="material-color" value="#ffffff">
+        </label>
+
+        <label>
+            Roughness
+            <input type="range" id="material-roughness" min="0" max="1" step="0.01" value="0.4">
+        </label>
+
+        <label>
+            Metalness
+            <input type="range" id="material-metalness" min="0" max="1" step="0.01" value="0.0">
+        </label>
+
+        <fieldset class="dir-light-fieldset">
+            <legend class="dir-light-legend">Key light (directional)</legend>
+            <label>
+                Intensity
+                <input type="range" id="dir-light-intensity" min="0" max="5" step="0.1" value="0.8">
+            </label>
+            <label>
+                Color
+                <input type="color" id="dir-light-color" value="#ffffff">
+            </label>
+            <label>
+                Azimuth (deg)
+                <input type="range" id="dir-light-azimuth" min="-180" max="180" step="1" value="45">
+            </label>
+            <label>
+                Elevation (deg)
+                <input type="range" id="dir-light-elevation" min="-90" max="90" step="1" value="30">
+            </label>
+        </fieldset>
+
+        <label>
+            Fill light intensity
+            <input type="range" id="point-light-intensity" min="0" max="2" step="0.05" value="0.3">
+        </label>
+
+        <button id="reset-appearance">Reset</button>
+    </div>
         </div>
     </div>
     

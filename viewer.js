@@ -52,6 +52,10 @@
     let scene, camera, renderer, controls, mesh;
     let wireframeEnabled = false;
 
+    // Exposed lighting/material references
+    let ambientLight, directionalLight, pointLight1, pointLight2;
+    let currentMaterial = null;
+
     // Get URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const modelUrl = urlParams.get('url');
@@ -99,24 +103,24 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         container.appendChild(renderer.domElement);
 
-        // Add lights
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambientLight);
+    // Add lights (store references for live control)
+    ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+    scene.add(ambientLight);
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(10, 10, 5);
-        directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 2048;
-        directionalLight.shadow.mapSize.height = 2048;
-        scene.add(directionalLight);
+    directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(10, 10, 5);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
+    scene.add(directionalLight);
 
-        const pointLight1 = new THREE.PointLight(0xffffff, 0.3);
-        pointLight1.position.set(-10, -10, -5);
-        scene.add(pointLight1);
+    pointLight1 = new THREE.PointLight(0xffffff, 0.28);
+    pointLight1.position.set(-10, -10, -5);
+    scene.add(pointLight1);
 
-        const pointLight2 = new THREE.PointLight(0xffffff, 0.2);
-        pointLight2.position.set(10, -10, 10);
-        scene.add(pointLight2);
+    pointLight2 = new THREE.PointLight(0xffffff, 0.18);
+    pointLight2.position.set(10, -10, 10);
+    scene.add(pointLight2);
 
     // (no floor/grid/axes by default) keep scene minimal for 3D models
 
@@ -130,8 +134,14 @@
     controls.autoRotate = false;
     controls.autoRotateSpeed = 0.5;
 
-        // Load the model
-        loadModel(modelUrl);
+    // Disable settings until model loads
+    disableSettings(true);
+
+    // Load the model
+    loadModel(modelUrl);
+
+    // Wire up UI controls
+    setupUI();
 
         // Handle window resize
         window.addEventListener('resize', onWindowResize);
@@ -164,17 +174,17 @@
                 // Compute normals for smooth shading
                 geometry.computeVertexNormals();
 
-                // Create material
-                const material = new THREE.MeshStandardMaterial({
-                    color: 0x8844ff,
+                // Create material (store as currentMaterial for runtime updates)
+                currentMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xffffff,
                     roughness: 0.4,
-                    metalness: 0.6,
+                    metalness: 0.0,
                     side: THREE.DoubleSide,
                     flatShading: false
                 });
 
                 // Create mesh
-                mesh = new THREE.Mesh(geometry, material);
+                mesh = new THREE.Mesh(geometry, currentMaterial);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
 
@@ -186,6 +196,10 @@
 
                 // Hide loading indicator
                 document.getElementById('loading').classList.add('hidden');
+
+                // Enable settings and populate UI with current values
+                disableSettings(false);
+                populateSettingsFromMaterial();
             },
             function(xhr) {
                 // Progress callback
@@ -254,6 +268,168 @@
         } else {
             btn.style.background = 'rgba(255, 255, 255, 0.2)';
         }
+    }
+
+    /**
+     * Setup UI event listeners for material and lighting controls
+     */
+    function setupUI() {
+        const preset = document.getElementById('preset-select');
+        const color = document.getElementById('material-color');
+        const roughness = document.getElementById('material-roughness');
+        const metalness = document.getElementById('material-metalness');
+        const dirLight = document.getElementById('dir-light-intensity');
+        const pointLight = document.getElementById('point-light-intensity');
+        const resetBtn = document.getElementById('reset-appearance');
+        const fitBtn = document.getElementById('fitview-btn');
+
+    if (preset) preset.addEventListener('change', () => applyPreset(preset.value));
+        if (color) color.addEventListener('input', updateMaterialFromUI);
+        if (roughness) roughness.addEventListener('input', updateMaterialFromUI);
+        if (metalness) metalness.addEventListener('input', updateMaterialFromUI);
+    // Directional light controls
+    const dirColor = document.getElementById('dir-light-color');
+    const dirAz = document.getElementById('dir-light-azimuth');
+    const dirEl = document.getElementById('dir-light-elevation');
+    if (dirColor) dirColor.addEventListener('input', () => updateLightsFromUI());
+    if (dirAz) dirAz.addEventListener('input', () => updateLightsFromUI());
+    if (dirEl) dirEl.addEventListener('input', () => updateLightsFromUI());
+        if (dirLight) dirLight.addEventListener('input', updateLightsFromUI);
+        if (pointLight) pointLight.addEventListener('input', updateLightsFromUI);
+        if (resetBtn) resetBtn.addEventListener('click', () => {
+            // Reset to fossil preset by default
+            applyPreset('fossil');
+            populateSettingsFromMaterial();
+        });
+        if (fitBtn) fitBtn.addEventListener('click', () => {
+            if (mesh && mesh.geometry) fitCameraToModel(mesh.geometry);
+        });
+    }
+
+    function disableSettings(disabled) {
+        const panel = document.getElementById('settings-panel');
+        if (!panel) return;
+        panel.setAttribute('aria-hidden', disabled ? 'true' : 'false');
+        Array.from(panel.querySelectorAll('input,select,button')).forEach(el => {
+            el.disabled = disabled;
+        });
+    }
+
+    function populateSettingsFromMaterial() {
+        if (!currentMaterial) return;
+        const color = document.getElementById('material-color');
+        const roughness = document.getElementById('material-roughness');
+        const metalness = document.getElementById('material-metalness');
+        const dirLight = document.getElementById('dir-light-intensity');
+        const dirColor = document.getElementById('dir-light-color');
+        const dirAz = document.getElementById('dir-light-azimuth');
+        const dirEl = document.getElementById('dir-light-elevation');
+        const pointLight = document.getElementById('point-light-intensity');
+
+        if (color) color.value = '#' + currentMaterial.color.getHexString();
+        if (roughness) roughness.value = (currentMaterial.roughness != null) ? currentMaterial.roughness : 0.4;
+        if (metalness) metalness.value = (currentMaterial.metalness != null) ? currentMaterial.metalness : 0.0;
+        if (dirLight && directionalLight) dirLight.value = directionalLight.intensity;
+        if (dirColor && directionalLight) {
+            // directionalLight.color is THREE.Color
+            dirColor.value = '#' + directionalLight.color.getHexString();
+        }
+        if (dirAz && dirEl && directionalLight) {
+            // compute azimuth/elevation from current directionalLight position relative to origin
+            const pos = directionalLight.position.clone().normalize();
+            const az = Math.atan2(pos.z, pos.x) * (180 / Math.PI);
+            const el = Math.asin(pos.y) * (180 / Math.PI);
+            dirAz.value = Math.round(az);
+            dirEl.value = Math.round(el);
+        }
+        if (pointLight && pointLight1) pointLight.value = pointLight1.intensity;
+    }
+
+    function applyPreset(name) {
+        if (!currentMaterial) return;
+        switch (name) {
+            case 'fossil':
+                currentMaterial.color.set('#cfc6b8');
+                currentMaterial.roughness = 0.8;
+                currentMaterial.metalness = 0.0;
+                currentMaterial.flatShading = false;
+                break;
+            case 'polished':
+                currentMaterial.color.set('#9b6ae6');
+                currentMaterial.roughness = 0.18;
+                currentMaterial.metalness = 0.12;
+                currentMaterial.flatShading = false;
+                break;
+            case 'metallic':
+                currentMaterial.color.set('#888888');
+                currentMaterial.roughness = 0.2;
+                currentMaterial.metalness = 0.9;
+                currentMaterial.flatShading = false;
+                break;
+            case 'default':
+            default:
+                currentMaterial.color.set('#6f2b9c');
+                currentMaterial.roughness = 0.4;
+                currentMaterial.metalness = 0.0;
+                currentMaterial.flatShading = false;
+                break;
+        }
+        currentMaterial.needsUpdate = true;
+        populateSettingsFromMaterial();
+    }
+
+    function updateMaterialFromUI() {
+        if (!currentMaterial) return;
+        const color = document.getElementById('material-color');
+        const roughness = document.getElementById('material-roughness');
+        const metalness = document.getElementById('material-metalness');
+
+        if (color) currentMaterial.color.set(color.value);
+        if (roughness) currentMaterial.roughness = parseFloat(roughness.value);
+        if (metalness) currentMaterial.metalness = parseFloat(metalness.value);
+        currentMaterial.needsUpdate = true;
+    }
+
+    function updateLightsFromUI() {
+        const dirLight = document.getElementById('dir-light-intensity');
+        const dirColor = document.getElementById('dir-light-color');
+        const dirAz = document.getElementById('dir-light-azimuth');
+        const dirEl = document.getElementById('dir-light-elevation');
+        const pointLight = document.getElementById('point-light-intensity');
+
+        if (dirLight && directionalLight) directionalLight.intensity = parseFloat(dirLight.value);
+        if (dirColor && directionalLight) directionalLight.color.set(dirColor.value);
+
+        // Reposition directional light using spherical coords: distance may be kept constant
+        if (dirAz && dirEl && directionalLight) {
+            const az = parseFloat(dirAz.value) * (Math.PI / 180);
+            const el = parseFloat(dirEl.value) * (Math.PI / 180);
+            // Use a reasonable distance relative to camera far or fixed distance
+            const dist = Math.max(10, camera.position.length());
+            const x = Math.cos(el) * Math.cos(az) * dist;
+            const y = Math.sin(el) * dist;
+            const z = Math.cos(el) * Math.sin(az) * dist;
+            directionalLight.position.set(x, y, z);
+            directionalLight.target.position.set(0,0,0);
+            if (directionalLight.target && directionalLight.target.updateMatrixWorld) directionalLight.target.updateMatrixWorld();
+        }
+
+        if (pointLight && pointLight1) pointLight1.intensity = parseFloat(pointLight.value);
+    }
+
+    /**
+     * Attempt to load a texture URL and apply to the material as an occlusion/roughness map if desired.
+     * For now this is a placeholder for future texture URL support.
+     */
+    function loadTexture(url) {
+        if (!THREE || !currentMaterial) return;
+        const loader = new THREE.TextureLoader();
+        loader.load(url, tex => {
+            currentMaterial.map = tex;
+            currentMaterial.needsUpdate = true;
+        }, undefined, err => {
+            console.warn('Texture could not be loaded', err);
+        });
     }
 
     /**

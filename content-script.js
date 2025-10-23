@@ -520,6 +520,51 @@
       subtree: true
     });
   }
+
+  /**
+   * Intercepts clicks on 3D model links (.stl, .obj, .gltf, .glb files)
+   * and opens them in the custom 3D viewer instead of downloading
+   */
+  function intercept3DModelLinks() {
+    document.addEventListener('click', function(event) {
+      const target = event.target.closest('a');
+      
+      if (!target || !target.href) return;
+      
+      const url = target.href;
+      const lowerUrl = url.toLowerCase();
+      
+      // Check if it's a 3D model file
+      const is3DModel = lowerUrl.endsWith('.stl') || 
+                        lowerUrl.endsWith('.obj') || 
+                        lowerUrl.endsWith('.gltf') || 
+                        lowerUrl.endsWith('.glb');
+      
+      if (!is3DModel) return;
+      
+      // Prevent default download behavior
+      event.preventDefault();
+      event.stopPropagation();
+      
+      // Extract filename from URL or download attribute
+      let filename = target.getAttribute('downloadname') || 
+                     target.download || 
+                     url.split('/').pop().split('?')[0];
+      
+      // Clean up filename
+      filename = decodeURIComponent(filename);
+      
+      // Build viewer URL
+      const viewerUrl = chrome.runtime.getURL('viewer.html') + 
+                       '?url=' + encodeURIComponent(url) + 
+                       '&name=' + encodeURIComponent(filename);
+      
+      // Open in new tab
+      window.open(viewerUrl, '_blank');
+      
+      console.log('3D Model intercepted:', filename, url);
+    }, true); // Use capture phase to catch the event early
+  }
   
   // Initialize
   function init() {
@@ -530,6 +575,9 @@
     
     // Observe changes
     observeFormChanges();
+    
+    // Intercept 3D model links
+    intercept3DModelLinks();
   }
   
   // Wait for the DOM to be ready

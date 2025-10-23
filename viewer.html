@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor 3D - Specify 7</title>
+    <link rel="stylesheet" href="viewer-styles.css">
+</head>
+<body>
+    <div id="header">
+        <h1 id="model-title">Cargando modelo 3D...</h1>
+        <div id="controls">
+            <button id="download-btn" title="Descargar modelo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Descargar
+            </button>
+            <button id="wireframe-btn" title="Toggle Wireframe">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                Wireframe
+            </button>
+        </div>
+    </div>
+    
+    <div id="viewer-container"></div>
+    
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>Cargando modelo 3D...</p>
+    </div>
+    
+    <div id="error" class="hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <h2>Error al cargar el modelo</h2>
+        <p id="error-message"></p>
+    </div>
+
+    <!-- Three.js y dependencias locales -->
+    <script src="lib/three.min.js"></script>
+    <script src="lib/STLLoader.js"></script>
+    <script src="lib/OrbitControls.js"></script>
+    <script src="viewer.js"></script>
+</body>
+</html>

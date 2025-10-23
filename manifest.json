@@ -1,11 +1,14 @@
 {
   "manifest_version": 3,
   "name": "BibTeX to Specify 7",
-  "version": "1.0.0",
-  "description": "Extensión para importar bibliografía BibTeX en formularios de Specify 7",
+  "version": "1.1.0",
+  "description": "Extensión para importar bibliografía BibTeX en formularios de Specify 7 y visualizar modelos 3D",
   "permissions": [
     "activeTab",
     "clipboardRead"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "content_scripts": [
     {
@@ -13,6 +16,19 @@
       "js": ["bibtex-parser.js", "content-script.js"],
       "css": ["styles.css"],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "viewer.html", 
+        "viewer.js", 
+        "viewer-styles.css",
+        "lib/three.min.js",
+        "lib/STLLoader.js",
+        "lib/OrbitControls.js"
+      ],
+      "matches": ["<all_urls>"]
     }
   ],
   "action": {

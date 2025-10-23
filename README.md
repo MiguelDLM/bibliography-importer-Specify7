@@ -144,19 +144,7 @@ Features are toggled via the popup. To add a new feature:
 2. Update `src/popup/popup.js` to save the preference
 3. Update `src/content/content-script.js` to respect the toggle
 
-## 📝 TODO / Future Improvements
 
-- [x] DOI import and CrossRef mapping
-- [ ] Full support for automatically adding authors
-- [ ] Batch import (multiple BibTeX entries)
-- [ ] Export references from Specify to BibTeX
-- [ ] Support for more specialized fields
-- [ ] Customizable field mapping configuration
-- [ ] Import history
-- [ ] Advanced data validation
-- [ ] Automated tests
 
----
-
-**Version:** 2.0.0  
+**Version:**1.0.0  
 **Last update:** October 2025

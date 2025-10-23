@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Specify7+</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <h1>Specify7+</h1>
+    <p>Enhanced tools for Specify 7</p>
+  </div>
+
+  <div class="content">
+    <div class="section">
+      <h2>Active Features</h2>
+      
+      <div class="feature-toggle">
+        <input type="checkbox" id="feature-bibtex" checked>
+        <label for="feature-bibtex">
+          <span class="feature-name">BibTeX Importer</span>
+          <span class="feature-desc">Import bibliography from BibTeX format</span>
+        </label>
+      </div>
+
+      <div class="feature-toggle">
+        <input type="checkbox" id="feature-doi" checked>
+        <label for="feature-doi">
+          <span class="feature-name">DOI Importer</span>
+          <span class="feature-desc">Fetch metadata from DOI</span>
+        </label>
+      </div>
+
+      <div class="feature-toggle">
+        <input type="checkbox" id="feature-3dviewer" checked>
+        <label for="feature-3dviewer">
+          <span class="feature-name">3D Viewer</span>
+          <span class="feature-desc">View 3D models (.stl, .obj, .gltf, .glb)</span>
+        </label>
+      </div>
+
+      <div class="feature-toggle">
+        <input type="checkbox" id="feature-selectall" checked>
+        <label for="feature-selectall">
+          <span class="feature-name">Select All Button</span>
+          <span class="feature-desc">Add "Select All" button to query results</span>
+        </label>
+      </div>
+
+      <div id="status" class="status"></div>
+    </div>
+
+    <a href="../viewer/viewer.html" class="button" target="_blank">Open 3D Viewer</a>
+  </div>
+
+  <div class="footer">
+    <p>Version 1.0.0 · <a href="https://github.com/MiguelDLM/bibliography-importer-Specify7" target="_blank" rel="noopener">GitHub</a></p>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

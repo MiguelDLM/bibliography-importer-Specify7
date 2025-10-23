@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "BibTeX to Specify 7",
-  "version": "1.1.0",
-  "description": "Extension to import BibTeX bibliography into Specify 7 forms and view 3D models",
+  "name": "Specify7+",
+  "version": "2.0.0",
+  "description": "Specify7+ — import bibliography and view 3D models inside Specify 7",
   "permissions": [
     "activeTab",
-    "clipboardRead"
+    "clipboardRead",
+    "storage"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -13,26 +14,37 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["bibtex-parser.js", "content-script.js"],
-      "css": ["styles.css"],
+      "js": ["src/utils/bibtex-parser.js", "src/content/content-script.js"],
+      "css": ["src/content/content-styles.css"],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
       "resources": [
-        "viewer.html", 
-        "viewer.js", 
-        "viewer-styles.css",
-        "lib/three.min.js",
-        "lib/STLLoader.js",
-        "lib/OrbitControls.js"
+        "src/viewer/viewer.html", 
+        "src/viewer/viewer.js", 
+        "src/viewer/viewer.css",
+        "src/viewer/importmap.json",
+        "lib/three/three.min.js",
+        "lib/three/three.module.js",
+        "lib/three/STLLoader.js",
+        "lib/three/OrbitControls.js",
+        "lib/three/OBJLoader.js",
+        "lib/three/PLYLoader.js",
+        "lib/three/jsm/STLLoader.js",
+        "lib/three/jsm/OBJLoader.js",
+        "lib/three/jsm/PLYLoader.js",
+        "lib/three/jsm/OrbitControls.js"
       ],
       "matches": ["<all_urls>"]
     }
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "src/popup/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visor 3D - Specify 7</title>
-    <link rel="stylesheet" href="viewer-styles.css">
+    <link rel="stylesheet" href="viewer.css">
 </head>
 <body>
     <div id="header">
@@ -106,10 +106,7 @@
         <p id="error-message"></p>
     </div>
 
-    <!-- Three.js y dependencias locales -->
-    <script src="lib/three.min.js"></script>
-    <script src="lib/STLLoader.js"></script>
-    <script src="lib/OrbitControls.js"></script>
-    <script src="viewer.js"></script>
+    <!-- Load viewer as an ES module (it imports three.module and JSM loaders) -->
+    <script type="module" src="viewer.js"></script>
 </body>
 </html>

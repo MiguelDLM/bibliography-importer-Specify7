@@ -1,70 +1,35 @@
-/**
- * 3D Model Viewer using Three.js
- * This module loads and displays STL files from Specify 7
- */
+// ES module viewer for Specify7+
+// Imports Three.js module and JSM loaders directly
 
-(function() {
-    'use strict';
+import * as THREE from '../../lib/three/three.module.js';
+import { OrbitControls } from '../../lib/three/jsm/OrbitControls.js';
+import { STLLoader } from '../../lib/three/jsm/STLLoader.js';
+import { OBJLoader } from '../../lib/three/jsm/OBJLoader.js';
+import { PLYLoader } from '../../lib/three/jsm/PLYLoader.js';
+// import { GLTFLoader } from '../../lib/three/jsm/GLTFLoader.js'; // optional
 
-    /**
-     * Show error message
-     */
-    function showError(message) {
-        const loadingEl = document.getElementById('loading');
-        const errorEl = document.getElementById('error');
-        const errorMsg = document.getElementById('error-message');
+function showError(message) {
+    const loadingEl = document.getElementById('loading');
+    const errorEl = document.getElementById('error');
+    const errorMsg = document.getElementById('error-message');
 
-        if (loadingEl) loadingEl.classList.add('hidden');
-        if (errorEl) errorEl.classList.remove('hidden');
-        if (errorMsg) errorMsg.textContent = message;
-    }
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (errorEl) errorEl.classList.remove('hidden');
+    if (errorMsg) errorMsg.textContent = message;
+}
 
-    // Check if THREE is loaded
-    if (typeof THREE === 'undefined') {
-        console.error('THREE.js is not loaded!');
-        document.addEventListener('DOMContentLoaded', function() {
-            showError('Error: THREE.js no se cargó correctamente');
-        });
-        return;
-    }
+console.log('THREE (module) revision:', THREE.REVISION);
 
-    // Check if required components are available
-    if (typeof THREE.STLLoader === 'undefined') {
-        console.error('THREE.STLLoader is not loaded!');
-        document.addEventListener('DOMContentLoaded', function() {
-            showError('Error: STLLoader no se cargó correctamente');
-        });
-        return;
-    }
+let scene, camera, renderer, controls, mesh;
+let wireframeEnabled = false;
+let ambientLight, directionalLight, pointLight1, pointLight2;
+let currentMaterial = null;
 
-    if (typeof THREE.OrbitControls === 'undefined') {
-        console.error('THREE.OrbitControls is not loaded!');
-        document.addEventListener('DOMContentLoaded', function() {
-            showError('Error: OrbitControls no se cargó correctamente');
-        });
-        return;
-    }
+const urlParams = new URLSearchParams(window.location.search);
+const modelUrl = urlParams.get('url');
+const modelName = urlParams.get('name') || '3D Model';
 
-    console.log('THREE.js version:', THREE.REVISION);
-    console.log('All required libraries loaded successfully');
-
-    // Global variables
-    let scene, camera, renderer, controls, mesh;
-    let wireframeEnabled = false;
-
-    // Exposed lighting/material references
-    let ambientLight, directionalLight, pointLight1, pointLight2;
-    let currentMaterial = null;
-
-    // Get URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const modelUrl = urlParams.get('url');
-    const modelName = urlParams.get('name') || '3D Model';
-
-    /**
-     * Initialize the 3D viewer
-     */
-    function init() {
+function init() {
         if (!modelUrl) {
             showError('No 3D model URL specified');
             return;
@@ -125,7 +90,7 @@
     // (no floor/grid/axes by default) keep scene minimal for 3D models
 
         // Add orbit controls
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     // Allow a wide zoom range; tight limits will be set after model loads
@@ -157,61 +122,169 @@
      * Load 3D model
      */
     function loadModel(url) {
-        const loader = new THREE.STLLoader();
-
-        loader.load(
-            url,
-            function(geometry) {
-                // Success callback
-                console.log('Model loaded successfully');
-
-                // Center the geometry
-                geometry.computeBoundingBox();
-                const center = new THREE.Vector3();
-                geometry.boundingBox.getCenter(center);
-                geometry.translate(-center.x, -center.y, -center.z);
-
-                // Compute normals for smooth shading
-                geometry.computeVertexNormals();
-
-                // Create material (store as currentMaterial for runtime updates)
-                currentMaterial = new THREE.MeshStandardMaterial({
-                    color: 0xffffff,
-                    roughness: 0.4,
-                    metalness: 0.0,
-                    side: THREE.DoubleSide,
-                    flatShading: false
-                });
-
-                // Create mesh
-                mesh = new THREE.Mesh(geometry, currentMaterial);
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-
-                // Add to scene
-                scene.add(mesh);
-
-                // Adjust camera to fit model
-                fitCameraToModel(geometry);
-
-                // Hide loading indicator
-                document.getElementById('loading').classList.add('hidden');
-
-                // Enable settings and populate UI with current values
-                disableSettings(false);
-                populateSettingsFromMaterial();
-            },
-            function(xhr) {
-                // Progress callback
-                const percentComplete = xhr.loaded / xhr.total * 100;
-                console.log('Loading: ' + Math.round(percentComplete) + '%');
-            },
-            function(error) {
-                // Error callback
-                console.error('Error loading model:', error);
-                showError('Could not load 3D model. Verify the file is valid and accessible.');
+        const ext = url.split('.').pop().toLowerCase().split('?')[0];
+        if (ext === 'stl') {
+            if (typeof STLLoader === 'undefined') {
+                showError('STLLoader is not loaded');
+                return;
             }
-        );
+            const loader = new STLLoader();
+            loader.load(
+                url,
+                function(geometry) {
+                    console.log('STL model loaded successfully');
+                    geometry.computeBoundingBox();
+                    const center = new THREE.Vector3();
+                    geometry.boundingBox.getCenter(center);
+                    geometry.translate(-center.x, -center.y, -center.z);
+                    geometry.computeVertexNormals();
+                    currentMaterial = new THREE.MeshStandardMaterial({
+                        color: 0xffffff,
+                        roughness: 0.4,
+                        metalness: 0.0,
+                        side: THREE.DoubleSide,
+                        flatShading: false
+                    });
+                    mesh = new THREE.Mesh(geometry, currentMaterial);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    scene.add(mesh);
+                    fitCameraToModel(geometry);
+                    document.getElementById('loading').classList.add('hidden');
+                    disableSettings(false);
+                    populateSettingsFromMaterial();
+                },
+                function(xhr) {
+                    const percentComplete = xhr.loaded / xhr.total * 100;
+                    console.log('Loading: ' + Math.round(percentComplete) + '%');
+                },
+                function(error) {
+                    console.error('Error loading STL model:', error);
+                    showError('Could not load STL model. Verify the file is valid and accessible.');
+                }
+            );
+        } else if (ext === 'ply') {
+            if (typeof PLYLoader === 'undefined') {
+                showError('PLYLoader is not loaded');
+                return;
+            }
+            const loader = new PLYLoader();
+            loader.load(
+                url,
+                function(geometry) {
+                    console.log('PLY model loaded successfully');
+                    geometry.computeBoundingBox();
+                    const center = new THREE.Vector3();
+                    geometry.boundingBox.getCenter(center);
+                    geometry.translate(-center.x, -center.y, -center.z);
+                    geometry.computeVertexNormals();
+                    currentMaterial = new THREE.MeshStandardMaterial({
+                        color: 0xffffff,
+                        roughness: 0.4,
+                        metalness: 0.0,
+                        side: THREE.DoubleSide,
+                        flatShading: false
+                    });
+                    mesh = new THREE.Mesh(geometry, currentMaterial);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    scene.add(mesh);
+                    fitCameraToModel(geometry);
+                    document.getElementById('loading').classList.add('hidden');
+                    disableSettings(false);
+                    populateSettingsFromMaterial();
+                },
+                function(xhr) {
+                    const percentComplete = xhr.loaded / xhr.total * 100;
+                    console.log('Loading: ' + Math.round(percentComplete) + '%');
+                },
+                function(error) {
+                    console.error('Error loading PLY model:', error);
+                    showError('Could not load PLY model. Verify the file is valid and accessible.');
+                }
+            );
+        } else if (ext === 'obj') {
+            if (typeof OBJLoader === 'undefined') {
+                showError('OBJLoader is not loaded');
+                return;
+            }
+            const loader = new OBJLoader();
+            loader.load(
+                url,
+                function(object) {
+                    console.log('OBJ model loaded successfully');
+                    mesh = object;
+                    // Center mesh if possible
+                    let geometry = null;
+                    object.traverse(function(child) {
+                        if (child.isMesh) {
+                            geometry = child.geometry;
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+                    if (geometry) {
+                        geometry.computeBoundingBox();
+                        const center = new THREE.Vector3();
+                        geometry.boundingBox.getCenter(center);
+                        object.position.sub(center);
+                        fitCameraToModel(geometry);
+                    }
+                    scene.add(object);
+                    document.getElementById('loading').classList.add('hidden');
+                    disableSettings(false);
+                },
+                function(xhr) {
+                    const percentComplete = xhr.loaded / xhr.total * 100;
+                    console.log('Loading: ' + Math.round(percentComplete) + '%');
+                },
+                function(error) {
+                    console.error('Error loading OBJ model:', error);
+                    showError('Could not load OBJ model. Verify the file is valid and accessible.');
+                }
+            );
+        } else if (ext === 'gltf' || ext === 'glb') {
+            // GLTFLoader is optional - uncomment the import at the top to enable
+            if (typeof GLTFLoader === 'undefined') {
+                showError('GLTFLoader is not loaded. Enable it by uncommenting the GLTFLoader import.');
+                return;
+            }
+            const loader = new GLTFLoader();
+            loader.load(
+                url,
+                function(gltf) {
+                    console.log('GLTF/GLB model loaded successfully');
+                    mesh = gltf.scene;
+                    scene.add(mesh);
+                    // Center and fit camera if possible
+                    let geometry = null;
+                    mesh.traverse(function(child) {
+                        if (child.isMesh) {
+                            geometry = child.geometry;
+                        }
+                    });
+                    if (geometry) {
+                        geometry.computeBoundingBox();
+                        const center = new THREE.Vector3();
+                        geometry.boundingBox.getCenter(center);
+                        mesh.position.sub(center);
+                        fitCameraToModel(geometry);
+                    }
+                    document.getElementById('loading').classList.add('hidden');
+                    disableSettings(false);
+                },
+                function(xhr) {
+                    const percentComplete = xhr.loaded / xhr.total * 100;
+                    console.log('Loading: ' + Math.round(percentComplete) + '%');
+                },
+                function(error) {
+                    console.error('Error loading GLTF/GLB model:', error);
+                    showError('Could not load GLTF/GLB model. Verify the file is valid and accessible.');
+                }
+            );
+        } else {
+            showError('Unsupported file format: ' + ext.toUpperCase());
+        }
     }
 
     /**
@@ -458,7 +531,7 @@
         setTimeout(() => {
             const hint = document.createElement('div');
             hint.className = 'controls-hint';
-            hint.textContent = '🖱️ Click y arrastra para rotar | Rueda para zoom | Click derecho para mover';
+            hint.textContent = '🖱️ Click and drag to rotate | Scroll to zoom | Right click to pan';
             document.getElementById('viewer-container').appendChild(hint);
 
             setTimeout(() => {
@@ -467,11 +540,9 @@
         }, 1000);
     }
 
-    // Start when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
-})();
+// Start when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}

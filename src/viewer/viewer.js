@@ -25,48 +25,52 @@ let wireframeEnabled = false;
 let ambientLight, directionalLight, pointLight1, pointLight2;
 let currentMaterial = null;
 
+
 const urlParams = new URLSearchParams(window.location.search);
 const modelUrl = urlParams.get('url');
-const modelName = urlParams.get('name') || '3D Model';
+const modelTitle = urlParams.get('title');
+const modelFilename = urlParams.get('filename');
+const modelName = urlParams.get('name');
+const displayTitle = modelTitle || modelFilename || modelName || '3D Model';
 
 function init() {
-        if (!modelUrl) {
-            showError('No 3D model URL specified');
-            return;
-        }
+    if (!modelUrl) {
+        showError('No 3D model URL specified');
+        return;
+    }
 
-        // Update page title
-        document.getElementById('model-title').textContent = modelName;
+    // Update page title
+    document.getElementById('model-title').textContent = displayTitle;
 
-        // Setup download button
-        document.getElementById('download-btn').addEventListener('click', () => {
-            window.open(modelUrl, '_blank');
-        });
+    // Setup download button
+    document.getElementById('download-btn').addEventListener('click', () => {
+        window.open(modelUrl, '_blank');
+    });
 
-        // Setup wireframe toggle
-        document.getElementById('wireframe-btn').addEventListener('click', toggleWireframe);
+    // Setup wireframe toggle
+    document.getElementById('wireframe-btn').addEventListener('click', toggleWireframe);
 
-        // Create scene
-        scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0a0a);
+    // Create scene
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a0a);
 
-        // Create camera
-        const container = document.getElementById('viewer-container');
-        camera = new THREE.PerspectiveCamera(
-            50,
-            container.clientWidth / container.clientHeight,
-            0.1,
-            1000
-        );
-        camera.position.set(5, 5, 5);
+    // Create camera
+    const container = document.getElementById('viewer-container');
+    camera = new THREE.PerspectiveCamera(
+        50,
+        container.clientWidth / container.clientHeight,
+        0.1,
+        1000
+    );
+    camera.position.set(5, 5, 5);
 
-        // Create renderer
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        container.appendChild(renderer.domElement);
+    // Create renderer
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
 
     // Add lights (store references for live control)
     ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
@@ -89,7 +93,7 @@ function init() {
 
     // (no floor/grid/axes by default) keep scene minimal for 3D models
 
-        // Add orbit controls
+    // Add orbit controls
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;

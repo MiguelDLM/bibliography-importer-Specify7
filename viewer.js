@@ -55,14 +55,14 @@
     // Get URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const modelUrl = urlParams.get('url');
-    const modelName = urlParams.get('name') || 'Modelo 3D';
+    const modelName = urlParams.get('name') || '3D Model';
 
     /**
      * Initialize the 3D viewer
      */
     function init() {
         if (!modelUrl) {
-            showError('No se especificó una URL de modelo 3D');
+            showError('No 3D model URL specified');
             return;
         }
 
@@ -118,22 +118,17 @@
         pointLight2.position.set(10, -10, 10);
         scene.add(pointLight2);
 
-        // Add grid
-        const gridHelper = new THREE.GridHelper(20, 20, 0x9d4b4b, 0x6f6f6f);
-        scene.add(gridHelper);
-
-        // Add axes helper (optional)
-        const axesHelper = new THREE.AxesHelper(5);
-        scene.add(axesHelper);
+    // (no floor/grid/axes by default) keep scene minimal for 3D models
 
         // Add orbit controls
-        controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.minDistance = 2;
-        controls.maxDistance = 50;
-        controls.autoRotate = false;
-        controls.autoRotateSpeed = 0.5;
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    // Allow a wide zoom range; tight limits will be set after model loads
+    controls.minDistance = 0.01;
+    controls.maxDistance = 1e9;
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 0.5;
 
         // Load the model
         loadModel(modelUrl);
@@ -200,7 +195,7 @@
             function(error) {
                 // Error callback
                 console.error('Error loading model:', error);
-                showError('No se pudo cargar el modelo 3D. Verifica que el archivo sea válido y accesible.');
+                showError('Could not load 3D model. Verify the file is valid and accessible.');
             }
         );
     }
@@ -209,17 +204,38 @@
      * Fit camera to show entire model
      */
     function fitCameraToModel(geometry) {
-        const boundingBox = geometry.boundingBox;
-        const size = new THREE.Vector3();
-        boundingBox.getSize(size);
+        // Ensure bounding volumes are up to date
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
 
-        const maxDim = Math.max(size.x, size.y, size.z);
+        const box = geometry.boundingBox;
+        const sphere = geometry.boundingSphere;
+
+        // If no sphere, fall back to box size
+        const radius = (sphere && sphere.radius) ? sphere.radius : Math.max(box.getSize(new THREE.Vector3()).length() * 0.5, 1);
+
+        // Place the camera so the model fits in view. Use the sphere radius and fov to compute distance.
         const fov = camera.fov * (Math.PI / 180);
-        let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-        cameraZ *= 1.5; // Add some padding
+        let distance = radius / Math.sin(fov / 2);
+        distance *= 1.25; // padding
 
-        camera.position.set(cameraZ, cameraZ, cameraZ);
-        camera.lookAt(0, 0, 0);
+        // Use a diagonal offset so camera isn't flush to an axis
+        const offset = new THREE.Vector3(distance, distance, distance);
+
+        // Since geometry was centered to origin when loaded, target is origin
+        const target = new THREE.Vector3(0, 0, 0);
+
+        camera.near = Math.max(0.001, radius / 1000);
+        camera.far = Math.max(camera.far, distance * 20);
+        camera.updateProjectionMatrix();
+
+        camera.position.copy(target).add(offset);
+        camera.lookAt(target);
+
+        // Update controls target and limits
+        controls.target.copy(target);
+        controls.minDistance = Math.max(0.001, radius * 0.01);
+        controls.maxDistance = distance * 20;
         controls.update();
     }
 

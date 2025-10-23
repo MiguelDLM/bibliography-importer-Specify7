@@ -546,13 +546,30 @@
       event.preventDefault();
       event.stopPropagation();
       
-      // Extract filename from URL or download attribute
-      let filename = target.getAttribute('downloadname') || 
-                     target.download || 
-                     url.split('/').pop().split('?')[0];
-      
-      // Clean up filename
-      filename = decodeURIComponent(filename);
+      // Extract filename from URL or download attribute, sanitize common server prefixes
+      let filename = target.getAttribute('downloadname') || target.download || url.split('/').pop().split('?')[0];
+      filename = decodeURIComponent(filename || 'model');
+
+      // Remove common server-side wrappers like 'fileget' or long GUID prefixes
+      // e.g. 'fileget?coll=...&filename=Acinonyx...stl' -> extract basename
+      // If filename contains '=', take part after last '='
+      if (filename.includes('fileget') && url.includes('filename=')) {
+        try {
+          const params = new URLSearchParams(url.split('?')[1] || '');
+          const fn = params.get('filename') || params.get('downloadname');
+          if (fn) filename = decodeURIComponent(fn);
+        } catch (e) {
+          // ignore and fallback
+        }
+      }
+
+      // If still contains query params, strip them
+      filename = filename.split('?')[0];
+      // If it looks like a server token or UUID-only, keep last path segment
+      filename = filename.split('/').pop();
+
+      // Final fallback
+      if (!filename) filename = 'model';
       
       // Build viewer URL
       const viewerUrl = chrome.runtime.getURL('viewer.html') + 

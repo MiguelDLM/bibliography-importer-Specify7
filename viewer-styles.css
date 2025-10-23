@@ -68,7 +68,7 @@ body {
     overflow: hidden;
 }
 
-/* Canvas will be injected here by React Three Fiber */
+/* Canvas rendered by Three.js */
 #viewer-container canvas {
     display: block;
     width: 100%;

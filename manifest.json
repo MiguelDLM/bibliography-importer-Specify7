@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "BibTeX to Specify 7",
   "version": "1.1.0",
-  "description": "Extensión para importar bibliografía BibTeX en formularios de Specify 7 y visualizar modelos 3D",
+  "description": "Extension to import BibTeX bibliography into Specify 7 forms and view 3D models",
   "permissions": [
     "activeTab",
     "clipboardRead"

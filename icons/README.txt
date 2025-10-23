@@ -1,8 +1,8 @@
-# Crear iconos PNG placeholder (para desarrollo)
-# Los iconos SVG se pueden convertir más tarde
+# Create placeholder PNG icons (for development)
+# SVG icons can be converted later
 
-# Crear un PNG simple de 128x128 para desarrollo
-# Este es un placeholder - se recomienda generar los iconos correctamente
+# Create a simple 128x128 PNG for development
+# This is a placeholder - it's recommended to generate proper icons
 
-echo "Nota: Los archivos PNG se deben generar desde icon128.svg"
-echo "Ejecuta ./generate-icons.sh o usa un conversor online"
+echo "Note: PNG files should be generated from icon128.svg"
+echo "Run ./generate-icons.sh or use an online converter"

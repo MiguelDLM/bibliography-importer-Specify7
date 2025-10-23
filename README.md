@@ -1,3 +1,11 @@
+# Disclaimer
+
+This extension was designed to satisfy my personal needs with Specify 7. Each user is responsible for their own use and configuration. Although it is unlikely to cause damage to your Specify installation, the author is not responsible for any issues, data loss, or malfunction.
+
+This is a personal-use project and is not affiliated with or related to the official development of Specify 7 or its creators. Use at your own risk.
+
+---
+
 # Specify7+
 
 Specify7+ is a browser extension for Chromium-based browsers that enhances Specify 7 with powerful productivity tools.
